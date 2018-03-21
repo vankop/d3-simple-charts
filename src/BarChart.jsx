@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import * as d3 from 'd3';
 
 import './BarChart.css';
+import {TRANSITION_DURATION} from './utils';
 
 const margin = {
     top: 40,
@@ -72,7 +73,7 @@ export default class BarChart extends Component {
 
     componentWillReceiveProps(props) {
         const { series } = props;
-        if (series !== this.props.series) {
+        if (this.node && series !== this.props.series) {
             this.createChart(props)
         }
     }
@@ -120,7 +121,7 @@ export default class BarChart extends Component {
         const max = maxValue / 0.75;
 
         const y = d3.scaleLinear()
-            .domain([min === true ? minValue / 2 : min || 0, max])
+            .domain([min === true ? minValue / 2 : (min || 0), max])
             .range([chartHeight, 0]);
 
         const color = d3.scaleOrdinal()
@@ -160,17 +161,6 @@ export default class BarChart extends Component {
                 .attr('transform', `translate(0, ${height - margin.bottom - margin.top})`);
         }
 
-        this.yAxe
-            .call(yAxe);
-
-        this.xAxe
-            .call(xAxe)
-            .selectAll('text')
-            .attr("x", function () {
-                return -10-this.textContent.length;
-            })
-            .attr("transform", "rotate(-40)");
-
         const seriesWidth = x.bandwidth() / series.length;
 
         const g = this.chart
@@ -191,14 +181,14 @@ export default class BarChart extends Component {
                 rectangles
                     .exit()
                     .transition()
-                    .duration(750)
+                    .duration(TRANSITION_DURATION)
                     .attr('y', chartHeight)
                     .remove();
 
                 rectangles
                     .attr('fill', (el, index) => color(index))
                     .transition()
-                    .duration(750)
+                    .duration(TRANSITION_DURATION)
                     .tween("updateExisting", function (el, seriesIndex) {
                         const node = this;
                         const heightInterpolator = d3.interpolateString(node.getAttribute('height'), chartHeight - y(el));
@@ -222,7 +212,7 @@ export default class BarChart extends Component {
                     .attr('y', chartHeight)
                     .attr('height', (el) => chartHeight - y(el))
                     .transition()
-                    .duration(750)
+                    .duration(TRANSITION_DURATION)
                     .attr('y', (el) => y(el));
             });
 
@@ -244,7 +234,7 @@ export default class BarChart extends Component {
                         .attr('y', chartHeight)
                         .attr('height', (el) => chartHeight - y(el))
                     .transition()
-                    .duration(750)
+                    .duration(TRANSITION_DURATION)
                     .attr('y', (el) => y(el));
             });
 
@@ -261,6 +251,17 @@ export default class BarChart extends Component {
                 .selectAll('g')
                 .data(seriesLegend);
 
+        this.yAxe
+            .call(yAxe);
+
+        this.xAxe
+            .call(xAxe)
+            .selectAll('text')
+            .attr("x", function () {
+                return -10-this.textContent.length;
+            })
+            .attr("transform", "rotate(-40)");
+
         legend
             .exit()
             .remove();
@@ -274,13 +275,13 @@ export default class BarChart extends Component {
                     .select('circle')
                     .attr('fill', color(index))
                     .transition()
-                    .duration(750)
+                    .duration(TRANSITION_DURATION)
                     .attr('cx', legendX(index));
 
                 currentBand
                     .select('text')
                     .transition()
-                    .duration(750)
+                    .duration(TRANSITION_DURATION)
                     .attr('x', legendX(index) + 2 * legendInfoRadius + legendCircleTextPadding);
             });
 
@@ -300,7 +301,7 @@ export default class BarChart extends Component {
                     .attr('cx', legendX(index))
                     .attr('fill', color(index))
                     .transition()
-                    .duration(750)
+                    .duration(TRANSITION_DURATION)
                     .attr('cy', marginTop / 2);
 
                 currentBand
@@ -309,7 +310,7 @@ export default class BarChart extends Component {
                     .attr('y', -legendInfoRadius)
                     .text(legend)
                     .transition()
-                    .duration(750)
+                    .duration(TRANSITION_DURATION)
                     .attr('y', marginTop / 2 + legendInfoRadius);
             });
     }
