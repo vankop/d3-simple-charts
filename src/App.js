@@ -10,7 +10,7 @@ class App extends Component {
     }
 
     render() {
-        const VALUE_COUNT = 20;
+        const VALUE_COUNT = Math.random() * 100 % 17 + 3;
         const SERIES = Math.random() * 100 % 7 + 1;
 
         const xAxis = times(VALUE_COUNT, () => faker.hacker.noun());
