@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { times, range } from 'lodash';
 import faker from 'faker';
 import BarChart from './BarChart';
-import PieChart from './PieChart';
+import DonutChart from './DonutChart';
 
 class App extends Component {
     componentDidMount() {
@@ -29,10 +29,10 @@ class App extends Component {
                     height={400}
                     min
                 />
-                {/*<PieChart*/}
-                {/*series={series}*/}
-                {/*width={500}*/}
-                {/*height={500}*/}
+                {/*<DonutChart*/}
+                    {/*series={series}*/}
+                    {/*width={500}*/}
+                    {/*height={500}*/}
                 {/*/>*/}
             </div>
         );

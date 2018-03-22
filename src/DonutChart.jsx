@@ -14,7 +14,7 @@ const margin = {
     right: 0
 };
 
-export default class PieChart extends Component {
+export default class DonutChart extends Component {
     static propTypes = {
         data: PropTypes.arrayOf(PropTypes.shape({
             id: PropTypes.any,
