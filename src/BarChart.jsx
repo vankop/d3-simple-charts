@@ -2,9 +2,10 @@ import React, { Component } from 'react';
 import { range, map, each } from 'lodash';
 import PropTypes from 'prop-types';
 import * as d3 from 'd3';
+import invariant from 'invariant';
 
 import './BarChart.css';
-import {TRANSITION_DURATION} from './utils';
+import {lazyArgument, TRANSITION_DURATION} from './utils';
 
 const margin = {
     top: 40,
@@ -62,7 +63,8 @@ export default class BarChart extends Component {
     };
 
     static defaultProps = {
-        min: 0
+        min: 0,
+        series: []
     };
 
     constructor() {
@@ -90,6 +92,12 @@ export default class BarChart extends Component {
             xAxis,
             min
         } = props;
+
+        invariant(
+            series && series.length > 0,
+            'props.series must be not empty array, got %s',
+            lazyArgument(() => series ? JSON.stringify(series) : series)
+        );
 
         if (series.length === 0) {
             return;

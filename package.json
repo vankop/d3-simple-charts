@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "d3": "^4.13.0",
+    "invariant": "^2.2.3",
     "lodash": "^4.17.5",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
