@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import * as d3 from 'd3';
 import invariant from 'invariant';
 
+import legend from './legend';
 import './BarChart.css';
 import {lazyArgument, TRANSITION_DURATION} from './utils';
 
@@ -14,8 +15,7 @@ const margin = {
     right: 0
 };
 
-const legendCircleTextPadding = 3;
-const legendInfoRadius = 4;
+const legendHeight = 100;
 
 const category10 = d3.schemeCategory10;
 
@@ -130,7 +130,10 @@ export default class BarChart extends Component {
         const { width, height } = this.node.getBoundingClientRect();
 
         const chartWidth = width - margin.left - margin.right;
-        const chartHeight = height - margin.top - margin.bottom;
+        const chartHeight = height - margin.top - margin.bottom - legendHeight;
+        const legendY = margin.top + chartHeight + margin.bottom;
+        const legendX = margin.left;
+
 
         const indexes = range(dataLength);
 
@@ -159,7 +162,7 @@ export default class BarChart extends Component {
         if (!this.legend) {
             this.legend = d3.select(this.node)
                 .append('g')
-                .attr('transform', `translate(${margin.left},0)`);
+                .attr('transform', `translate(${margin.left},${legendY})`);
         }
 
         if (!this.d3Node) {
@@ -181,7 +184,7 @@ export default class BarChart extends Component {
         if (!this.xAxe) {
             this.xAxe = this.d3Node
                 .append('g')
-                .attr('transform', `translate(0, ${height - margin.bottom - margin.top})`);
+                .attr('transform', `translate(0, ${chartHeight})`);
         }
 
         const seriesWidth = x.bandwidth() / series.length;
@@ -261,19 +264,6 @@ export default class BarChart extends Component {
                     .attr('y', (el) => y(el));
             });
 
-        const legendX = d3
-            .scaleBand()
-            .domain(range(series.length))
-            .range([0, chartWidth])
-            .padding(.2);
-
-        const marginTop = margin.top;
-
-        const legend =
-            this.legend
-                .selectAll('g')
-                .data(seriesLegend);
-
         this.yAxe
             .call(yAxe);
 
@@ -285,57 +275,17 @@ export default class BarChart extends Component {
             })
             .attr("transform", "rotate(-40)");
 
-        legend
-            .exit()
-            .remove();
-
-        legend
-            .each(function (legend, index) {
-                const currentBand = d3
-                    .select(this);
-
-                currentBand
-                    .select('circle')
-                    .attr('fill', color(index))
-                    .transition()
-                    .duration(TRANSITION_DURATION)
-                    .attr('cx', legendX(index));
-
-                currentBand
-                    .select('text')
-                    .transition()
-                    .duration(TRANSITION_DURATION)
-                    .attr('x', legendX(index) + 2 * legendInfoRadius + legendCircleTextPadding);
-            });
-
-        legend
-            .enter()
-            .append('g')
-            .attr('font-family', 'sans-serif')
-            .attr('font-size', '12px')
-            .each(function (legend, index) {
-                const currentBand = d3
-                    .select(this);
-
-                currentBand
-                    .append('circle')
-                    .attr('r', legendInfoRadius)
-                    .attr('cy', -legendInfoRadius)
-                    .attr('cx', legendX(index))
-                    .attr('fill', color(index))
-                    .transition()
-                    .duration(TRANSITION_DURATION)
-                    .attr('cy', marginTop / 2);
-
-                currentBand
-                    .append('text')
-                    .attr('x', legendX(index) + 2 * legendInfoRadius + legendCircleTextPadding)
-                    .attr('y', -legendInfoRadius)
-                    .text(legend)
-                    .transition()
-                    .duration(TRANSITION_DURATION)
-                    .attr('y', marginTop / 2 + legendInfoRadius);
-            });
+        legend(
+            this.legend,
+            {
+                x: 0,
+                y: 0,
+                height: legendHeight,
+                width: chartWidth
+            },
+            color,
+            seriesLegend
+        );
     }
 
     setRef(domNode) {
