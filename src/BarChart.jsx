@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { range, map, each } from 'lodash';
+import { range, map, each, every } from 'lodash';
 import PropTypes from 'prop-types';
 import * as d3 from 'd3';
 import invariant from 'invariant';
@@ -99,13 +99,28 @@ export default class BarChart extends Component {
             lazyArgument(() => series ? JSON.stringify(series) : series)
         );
 
+        const dataLength = series[0].data.length;
+
+        invariant(
+            every(series, ({ data }) => data.length === dataLength),
+            'data.length must be equal for every serie, got: %s',
+            lazyArgument(() => JSON.stringify(series))
+        );
+
+        invariant(
+            xAxis && xAxis.length === dataLength,
+            'data.length must be equal xAxis.length, got data.length:%s and xAxis.length:%s',
+            dataLength,
+            xAxis && xAxis.length
+        );
+
         if (series.length === 0) {
             return;
         }
 
         const seriesData = [];
 
-        for(let i = 0; i < series[0].data.length; i++) {
+        for(let i = 0; i < dataLength; i++) {
             const data = map(series, serie => serie.data[i]);
             seriesData.push(data);
         }
@@ -117,7 +132,7 @@ export default class BarChart extends Component {
         const chartWidth = width - margin.left - margin.right;
         const chartHeight = height - margin.top - margin.bottom;
 
-        const indexes = range(seriesData.length);
+        const indexes = range(dataLength);
 
         const x = d3.scaleBand()
             .domain(indexes)
