@@ -9,6 +9,7 @@ import {
 } from './utils';
 import { min, range, map, reduce } from 'lodash';
 import legend from './legend';
+import popup from './popup';
 
 const legendHeight = 200;
 
@@ -28,6 +29,63 @@ function rememberDatum(el) {
 }
 
 const keySelector = ({ data: { name } }) => name;
+
+function arcTween(tweenArc, delay) {
+    return function() {
+        d3
+            .select(this)
+            .transition()
+            .delay(delay)
+            .attr('d', tweenArc);
+    };
+}
+
+function createMouseEnterHandler({
+    mouseEnterArcTween,
+    handleMouseLeave,
+    arc,
+    popupsContainer,
+    color
+}) {
+    return function mouseEnter(el) {
+        if (!this._popup) {
+            const {
+                data: {name, data},
+                settings: {
+                    format
+                } = {}
+            } = el;
+
+            mouseEnterArcTween.call(this);
+
+            this._popup = popup(
+                popupsContainer,
+                name,
+                format
+                    ? format.replace(/%s/ig, data)
+                    : data,
+                arc.centroid(el),
+                color(keySelector(el)),
+                handleMouseLeave.bind(this)
+            );
+        }
+    }
+}
+
+function createMouseLeaveHandler(mouseLeaveArcTween) {
+    return function mouseLeave() {
+        if (this._popup) {
+            if (!this._popup.isEventTarget(d3.event.relatedTarget)) {
+                mouseLeaveArcTween.call(this);
+
+                if (this._popup) {
+                    this._popup.remove();
+                    this._popup = null;
+                }
+            }
+        }
+    }
+}
 
 export default class PieChart extends Component {
     static propTypes = {
@@ -104,6 +162,13 @@ export default class PieChart extends Component {
             .outerRadius(radius * .8)
             .innerRadius(0);
 
+        const mouseEnterArc = d3.arc()
+            .outerRadius(radius * .9)
+            .innerRadius(0);
+
+        const mouseEnterArcTween = arcTween(mouseEnterArc, 0);
+        const mouseLeaveArcTween = arcTween(arc, 150);
+
         const labelArc = d3.arc()
             .outerRadius(radius * .9)
             .innerRadius(radius * .9);
@@ -113,6 +178,11 @@ export default class PieChart extends Component {
                 .select(this.node)
                 .append('g')
                 .attr('transform', `translate(${[cx, cy]})`);
+        }
+
+        if (!this.polylines) {
+            this.polylines = this.d3Node
+                .append('g');
         }
 
         if (!this.chart) {
@@ -127,15 +197,24 @@ export default class PieChart extends Component {
                 .attr('transform', `translate(${margin.left + (cx - radius)},${margin.top + chartHeight + margin.bottom})`)
         }
 
-        if (!this.polylines) {
-            this.polylines = this.d3Node
-                .append('g');
-        }
-
         if (!this.seriesInfo) {
             this.seriesInfo = this.d3Node
                 .append('g');
         }
+
+        if (!this.popupsContainer) {
+            this.popupsContainer = this.d3Node
+                .append('g');
+        }
+
+        const handleMouseLeave = createMouseLeaveHandler(mouseLeaveArcTween);
+        const handleMouseEnter = createMouseEnterHandler({
+            mouseEnterArcTween,
+            handleMouseLeave,
+            arc,
+            popupsContainer: this.popupsContainer,
+            color
+        });
 
         const g = this.chart
             .selectAll('path')
@@ -159,6 +238,8 @@ export default class PieChart extends Component {
                 .attr('fill', el => color(keySelector(el)))
                 .attr('stroke', '#fff')
                 .each(rememberDatum)
+                .on('mouseenter', handleMouseEnter)
+                .on('mouseleave', handleMouseLeave)
                 .transition()
                 .duration(PIE_CHART_TRANSITION_DURATION)
                 .attrTween('d', (el) => {
@@ -172,6 +253,8 @@ export default class PieChart extends Component {
                 .attr('fill', el => color(keySelector(el)))
                 .attr('stroke', '#fff')
                 .each(rememberDatum)
+                .on('mouseenter', handleMouseEnter)
+                .on('mouseleave', handleMouseLeave)
                 .transition()
                 .duration(PIE_CHART_TRANSITION_DURATION)
                 .attrTween('d', (el) => {
