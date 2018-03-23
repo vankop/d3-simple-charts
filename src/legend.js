@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import {range} from 'lodash';
-import {TRANSITION_DURATION} from './utils';
+import {BAR_CHART_TRANSITION_DURATION} from './utils';
 
 const legendCircleTextPadding = 3;
 const legendInfoRadius = 4;
@@ -41,13 +41,13 @@ export default function createLegend(
                 .select('circle')
                 .attr('fill', colorScale(legend))
                 .transition()
-                .duration(TRANSITION_DURATION)
+                .duration(BAR_CHART_TRANSITION_DURATION)
                 .attr('cy', legendY(index) - legendInfoRadius);
 
             currentBand
                 .select('text')
                 .transition()
-                .duration(TRANSITION_DURATION)
+                .duration(BAR_CHART_TRANSITION_DURATION)
                 .attr('y', legendY(index));
         });
 
@@ -67,7 +67,7 @@ export default function createLegend(
                 .attr('cx', marginLeft + legendInfoRadius)
                 .attr('fill', colorScale(legend))
                 .transition()
-                .duration(TRANSITION_DURATION)
+                .duration(BAR_CHART_TRANSITION_DURATION)
                 .attr('cy', legendY(index) - legendInfoRadius);
 
             currentBand
@@ -77,7 +77,7 @@ export default function createLegend(
                 .style('text-overflow', 'ellipsis')
                 .text(legend)
                 .transition()
-                .duration(TRANSITION_DURATION)
+                .duration(BAR_CHART_TRANSITION_DURATION)
                 .attr('y', legendY(index));
         });
 }

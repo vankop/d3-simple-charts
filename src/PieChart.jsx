@@ -5,7 +5,7 @@ import * as d3 from 'd3';
 import {
     colorRange,
     lazyArgument,
-    TRANSITION_DURATION
+    PIE_CHART_TRANSITION_DURATION
 } from './utils';
 import { min, range, map, reduce } from 'lodash';
 import legend from './legend';
@@ -31,7 +31,7 @@ const keySelector = ({ data: { name } }) => name;
 
 export default class PieChart extends Component {
     static propTypes = {
-        values: PropTypes.arrayOf(PropTypes.shape({
+        series: PropTypes.arrayOf(PropTypes.shape({
             name: PropTypes.string,
             data: PropTypes.arrayOf(PropTypes.number),
             settings: PropTypes.shape({
@@ -61,8 +61,8 @@ export default class PieChart extends Component {
     }
 
     componentWillReceiveProps(props) {
-        const { values } = props;
-        if (this.node && values !== this.props.values) {
+        const { series } = props;
+        if (this.node && series !== this.props.series) {
             this.createChart(props)
         }
     }
@@ -73,13 +73,13 @@ export default class PieChart extends Component {
 
     createChart(props, onMount) {
         const {
-            values
+            series
         } = props;
 
         invariant(
-            values && values.length,
-            'props.values must be not empty array, got %s',
-            lazyArgument(() => values ? JSON.stringify(values) : values)
+            series && series.length,
+            'props.series must be not empty array, got %s',
+            lazyArgument(() => series ? JSON.stringify(series) : series)
         );
 
         const { width, height } = this.node.getBoundingClientRect();
@@ -90,12 +90,12 @@ export default class PieChart extends Component {
         const cx = margin.left + chartWidth / 2;
         const cy = margin.top + chartHeight / 2;
         const labelXPosition = el => radius * 0.95 * (midAngle(el) < Math.PI ? 1 : -1);
-        const sum = reduce(values, (currentSum, { data }) => currentSum + data, 0);
+        const sum = reduce(series, (currentSum, { data }) => currentSum + data, 0);
         const percentage = data => Math.round(data / sum * 100);
 
         const color = d3
             .scaleOrdinal()
-            .domain(map(values, ({ name }) => name))
+            .domain(map(series, ({ name }) => name))
             .range(colorRange);
 
         const pie = d3.pie().sort(null).value(({ data }) => data);
@@ -132,19 +132,19 @@ export default class PieChart extends Component {
                 .append('g');
         }
 
-        if (!this.valuesInfo) {
-            this.valuesInfo = this.d3Node
+        if (!this.seriesInfo) {
+            this.seriesInfo = this.d3Node
                 .append('g');
         }
 
         const g = this.chart
             .selectAll('path')
-            .data(pie(values), keySelector);
+            .data(pie(series), keySelector);
 
         g
             .exit()
             .transition()
-            .duration(TRANSITION_DURATION * 2)
+            .duration(PIE_CHART_TRANSITION_DURATION)
             .attrTween('d', (el) => {
                 const { endAngle } = el;
                 const interpolation = d3.interpolate(el, { startAngle: endAngle, endAngle });
@@ -160,7 +160,7 @@ export default class PieChart extends Component {
                 .attr('stroke', '#fff')
                 .each(rememberDatum)
                 .transition()
-                .duration(TRANSITION_DURATION * 2)
+                .duration(PIE_CHART_TRANSITION_DURATION)
                 .attrTween('d', (el) => {
                     const interpolation = d3.interpolate({startAngle: 0, endAngle: 0}, el);
                     return moment => arc(interpolation(moment));
@@ -173,7 +173,7 @@ export default class PieChart extends Component {
                 .attr('stroke', '#fff')
                 .each(rememberDatum)
                 .transition()
-                .duration(TRANSITION_DURATION * 2)
+                .duration(PIE_CHART_TRANSITION_DURATION)
                 .attrTween('d', (el) => {
                     const { endAngle } = el;
                     const interpolation = d3.interpolate({ startAngle: endAngle, endAngle }, el);
@@ -184,7 +184,7 @@ export default class PieChart extends Component {
         g
             .attr('fill', el => color(keySelector(el)))
             .transition()
-            .duration(TRANSITION_DURATION * 2)
+            .duration(PIE_CHART_TRANSITION_DURATION)
             .attrTween('d', function (el) {
                 const interpolate = d3.interpolate(this._current, el);
 
@@ -196,12 +196,12 @@ export default class PieChart extends Component {
 
         const polyline = this.polylines
             .selectAll('polyline')
-            .data(pie(values), keySelector);
+            .data(pie(series), keySelector);
 
         polyline
             .exit()
             .transition()
-            .duration(TRANSITION_DURATION * 2)
+            .duration(PIE_CHART_TRANSITION_DURATION)
             .attrTween('points', (el) => {
                 const interpolate = d3.interpolate(el, { startAngle: el.endAngle, endAngle: el.endAngle });
                 return moment => {
@@ -240,12 +240,12 @@ export default class PieChart extends Component {
             })
             .style('opacity', 0)
             .transition()
-            .duration(TRANSITION_DURATION * 2)
+            .duration(PIE_CHART_TRANSITION_DURATION)
             .style('opacity', 1);
 
         polyline
             .transition()
-            .duration(TRANSITION_DURATION * 2)
+            .duration(PIE_CHART_TRANSITION_DURATION)
             .attrTween(
                 'points',
                 function (el) {
@@ -266,14 +266,14 @@ export default class PieChart extends Component {
                 }
             );
 
-        const text = this.valuesInfo
+        const text = this.seriesInfo
             .selectAll('text')
-            .data(pie(values), keySelector);
+            .data(pie(series), keySelector);
 
         text
             .exit()
             .transition()
-            .duration(TRANSITION_DURATION * 2)
+            .duration(PIE_CHART_TRANSITION_DURATION)
                 .attrTween('transform', (el) => {
                     const interpolate = d3.interpolate(el, { startAngle: el.endAngle, endAngle: el.endAngle });
                     return moment => {
@@ -309,13 +309,13 @@ export default class PieChart extends Component {
             .style('text-anchor', el => midAngle(el) < Math.PI ? 'start' : 'end')
             .style('opacity', 0)
             .transition()
-            .duration(TRANSITION_DURATION * 2)
+            .duration(PIE_CHART_TRANSITION_DURATION)
                 .style('opacity', 1);
 
         text
             .text(({ value }) => `${percentage(value)}%`)
             .transition()
-            .duration(TRANSITION_DURATION * 2)
+            .duration(PIE_CHART_TRANSITION_DURATION)
                 .attrTween('transform', function (el) {
                     const interpolate = d3.interpolate(this._current, el);
 
@@ -344,7 +344,7 @@ export default class PieChart extends Component {
                 width
             },
             color,
-            map(values, 'name')
+            map(series, 'name')
         );
     }
 

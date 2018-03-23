@@ -23,12 +23,12 @@ class App extends Component {
 
         const xAxis = times(valueCount, () => faker.date.month());
 
-        const series = times(barChartSeries, index => ({
+        const barSeries = times(barChartSeries, index => ({
           name: names[index],
           data: times(valueCount, () => Math.round(Math.random() * 200))
         }));
 
-        const values = times(pieChartSeries, index => ({
+        const pieSeries = times(pieChartSeries, index => ({
             name: names[index],
             data: Math.round(Math.random() * 200)
         }));
@@ -39,13 +39,13 @@ class App extends Component {
                 <div className="App">
                     <BarChart
                         xAxis={xAxis}
-                        series={series}
+                        series={barSeries}
                         width={1000}
                         height={600}
                         min
                     />
                     <PieChart
-                        values={values}
+                        series={pieSeries}
                         width={500}
                         height={500}
                     />

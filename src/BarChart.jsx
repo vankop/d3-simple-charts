@@ -8,7 +8,7 @@ import legend from './legend';
 import {
     colorRange,
     lazyArgument,
-    TRANSITION_DURATION
+    BAR_CHART_TRANSITION_DURATION
 } from './utils';
 
 const margin = {
@@ -221,7 +221,7 @@ export default class BarChart extends Component {
                     .attr('y', chartHeight)
                     .attr('height', ({ data }) => chartHeight - y(data))
                     .transition()
-                    .duration(TRANSITION_DURATION)
+                    .duration(BAR_CHART_TRANSITION_DURATION)
                     .attr('y', ({ data }) => y(data));
             });
 
@@ -235,7 +235,7 @@ export default class BarChart extends Component {
                 rectangles
                     .exit()
                     .transition()
-                    .duration(TRANSITION_DURATION)
+                    .duration(BAR_CHART_TRANSITION_DURATION)
                     .attr('y', chartHeight)
                     .remove();
 
@@ -249,13 +249,13 @@ export default class BarChart extends Component {
                     .attr('y', chartHeight)
                     .attr('height', ({ data }) => chartHeight - y(data))
                     .transition()
-                    .duration(TRANSITION_DURATION)
+                    .duration(BAR_CHART_TRANSITION_DURATION)
                     .attr('y', ({ data }) => y(data));
 
                 rectangles
                     .attr('fill', el => color(keySelector(el)))
                     .transition()
-                    .duration(TRANSITION_DURATION)
+                    .duration(BAR_CHART_TRANSITION_DURATION)
                     .tween("updateExisting", function (el, seriesIndex) {
                         const node = this;
                         const { data } = el;
