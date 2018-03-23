@@ -205,7 +205,20 @@ export default class BarChart extends Component {
                 .attr('stroke-width', 1);
         });
 
-        const popupsContainer = this.popupsContainer;
+        const handleMouseEnter = createMouseEnterHandler({
+            animate: function () {
+                d3
+                    .select(this)
+                    .attr('stroke-width', 3);
+            },
+            seriesSelector: el => el,
+            handleMouseLeave,
+            positionSelector: function() {
+                return [this.getAttribute('x'), this.getAttribute('y')];
+            },
+            popupsContainer: this.popupsContainer,
+            colorSelector: el => color(keySelector(el))
+        });
 
         const seriesWidth = x.bandwidth() / series.length;
 
@@ -221,20 +234,6 @@ export default class BarChart extends Component {
             .enter()
             .append('g')
             .each(function (series, index) {
-                const handleMouseEnter = createMouseEnterHandler({
-                    animate: function () {
-                        d3
-                            .select(this)
-                            .attr('stroke-width', 3);
-                    },
-                    seriesSelector: el => el,
-                    handleMouseLeave,
-                    positionSelector: ({ data }, seriesIndex) =>
-                        [x(index) + seriesWidth * seriesIndex, y(data)],
-                    popupsContainer: popupsContainer,
-                    colorSelector: el => color(keySelector(el))
-                });
-
                 const rectangles = d3
                     .select(this)
                     .selectAll('rect')
@@ -249,6 +248,8 @@ export default class BarChart extends Component {
                     .attr('x', (el, seriesIndex) => x(index) + seriesWidth * seriesIndex)
                     .attr('y', chartHeight)
                     .attr('height', ({ data }) => chartHeight - y(data))
+                    .on('touchstart', handleMouseEnter)
+                    .on('touchend', handleMouseLeave)
                     .on('mouseenter', handleMouseEnter)
                     .on('mouseleave', handleMouseLeave)
                     .transition()
@@ -279,6 +280,10 @@ export default class BarChart extends Component {
                     .attr('x', (el, seriesIndex) => x(index) + seriesWidth * seriesIndex)
                     .attr('y', chartHeight)
                     .attr('height', ({ data }) => chartHeight - y(data))
+                    .on('touchstart', handleMouseEnter)
+                    .on('touchend', handleMouseLeave)
+                    .on('mouseenter', handleMouseEnter)
+                    .on('mouseleave', handleMouseLeave)
                     .transition()
                     .duration(BAR_CHART_TRANSITION_DURATION)
                     .attr('y', ({ data }) => y(data));
@@ -334,15 +339,7 @@ export default class BarChart extends Component {
     render() {
         const { width, height } = this.props;
         return (
-            <svg ref={this.setRef} width={width} height={height} >
-                <defs>
-                    <filter id="f3" x="0" y="0" width="200%" height="200%">
-                        <feOffset result="offOut" in="SourceAlpha" dx="20" dy="20" />
-                        <feGaussianBlur result="blurOut" in="offOut" stdDeviation="10" />
-                        <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
-                    </filter>
-                </defs>
-            </svg>
+            <svg ref={this.setRef} width={width} height={height} />
         );
     }
 }

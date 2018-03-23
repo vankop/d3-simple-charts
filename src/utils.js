@@ -30,8 +30,8 @@ export function createMouseEnterHandler({
                 popupsContainer,
                 name,
                 data,
-                positionSelector(el, index),
-                colorSelector(el, index),
+                positionSelector.call(this, el, index),
+                colorSelector.call(this, el, index),
                 handleMouseLeave.bind(this)
             );
         }

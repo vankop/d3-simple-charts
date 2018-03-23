@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { times, range, max } from 'lodash';
+import { times, max } from 'lodash';
 import faker from 'faker';
 import BarChart from './BarChart';
 import PieChart from './PieChart';
