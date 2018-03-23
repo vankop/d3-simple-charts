@@ -18,8 +18,8 @@ const margin = {
     bottom: 20
 };
 
-function midAngle(d){
-    return d.startAngle + (d.endAngle - d.startAngle)/2;
+function midAngle({ startAngle, endAngle }){
+    return startAngle + ((endAngle - startAngle) / 2);
 }
 
 function rememberDatum(el) {
@@ -94,7 +94,7 @@ export default class PieChart extends Component {
 
         const color = d3
             .scaleOrdinal()
-            .domain(range(values.length))
+            .domain(map(values, ({ name }) => name))
             .range(d3.schemeCategory20);
 
         const pie = d3.pie().sort(null).value(({ data }) => data);
@@ -143,7 +143,7 @@ export default class PieChart extends Component {
         g
             .exit()
             .transition()
-            .duration(TRANSITION_DURATION * 2 + TRANSITION_DURATION / 2)
+            .duration(TRANSITION_DURATION * 2)
             .attrTween('d', (el) => {
                 const { endAngle } = el;
                 const interpolation = d3.interpolate(el, { startAngle: endAngle, endAngle });
@@ -155,7 +155,7 @@ export default class PieChart extends Component {
             g
                 .enter()
                 .append('path')
-                .attr('fill', (el , index) => color(index))
+                .attr('fill', el => color(keySelector(el)))
                 .attr('stroke', '#fff')
                 .each(rememberDatum)
                 .transition()
@@ -168,7 +168,7 @@ export default class PieChart extends Component {
             g
                 .enter()
                 .append('path')
-                .attr('fill', (el , index) => color(index))
+                .attr('fill', el => color(keySelector(el)))
                 .attr('stroke', '#fff')
                 .each(rememberDatum)
                 .transition()
@@ -181,7 +181,7 @@ export default class PieChart extends Component {
         }
 
         g
-            .attr('fill', (el , index) => color(index))
+            .attr('fill', el => color(keySelector(el)))
             .transition()
             .duration(TRANSITION_DURATION * 2)
             .attrTween('d', function (el) {
@@ -222,7 +222,7 @@ export default class PieChart extends Component {
         polygon
             .enter()
             .append('polyline')
-            .attr('stroke', (el, index) => color(index))
+            .attr('stroke', el => color(keySelector(el)))
             .attr('fill', 'none')
             .each(rememberDatum)
             .text(({ name }) => name)
@@ -243,24 +243,25 @@ export default class PieChart extends Component {
         polygon
             .transition()
             .duration(TRANSITION_DURATION * 2)
-            .tween('polygonTransform', function (el, index) {
-                const interpolateElement = d3.interpolate(this._current, el);
-                const interpolateColor = d3.interpolateString(this.getAttribute('stroke'), color(index));
+            .attrTween(
+                'points',
+                function (el) {
+                    const interpolateElement = d3.interpolate(this._current, el);
 
-                return (moment) => {
-                    this._current = interpolateElement(moment);
-                    const arcCentroid = arc.centroid(this._current);
-                    const labelCentroid = labelArc.centroid(this._current);
-                    const [labelX, labelY] = labelCentroid;
+                    return (moment) => {
+                        this._current = interpolateElement(moment);
+                        const arcCentroid = arc.centroid(this._current);
+                        const labelCentroid = labelArc.centroid(this._current);
+                        const [labelX, labelY] = labelCentroid;
 
-                    this.setAttribute('stroke', interpolateColor(moment));
-                    this.setAttribute('points', [
-                        arcCentroid,
-                        labelCentroid,
-                        [labelXPosition(this._current), labelY]
-                    ])
-                };
-            });
+                        return [
+                            arcCentroid,
+                            labelCentroid,
+                            [labelXPosition(this._current), labelY]
+                        ];
+                    };
+                }
+            );
 
         const text = this.valuesInfo
             .selectAll('text')
