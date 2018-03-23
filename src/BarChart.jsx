@@ -216,6 +216,7 @@ export default class BarChart extends Component {
                     .enter()
                     .append('rect')
                     .attr('width', seriesWidth)
+                    .attr('stroke', '#666')
                     .attr('fill', el => color(keySelector(el)))
                     .attr('x', (el, seriesIndex) => x(index) + seriesWidth * seriesIndex)
                     .attr('y', chartHeight)
