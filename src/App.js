@@ -5,7 +5,7 @@ import BarChart from './BarChart';
 import PieChart from './PieChart';
 
 const BAR_CHART_MAX_SERIES = 10;
-const PIE_CHART_MAX_SERIES = 20;
+const PIE_CHART_MAX_SERIES = 10;
 
 const names = times(
     max([PIE_CHART_MAX_SERIES, BAR_CHART_MAX_SERIES]),
@@ -29,20 +29,20 @@ class App extends Component {
           data: times(valueCount, () => Math.round(Math.random() * 200))
         }));
 
-        const values = times(Math.random() * 100 % 5 + 1, index => ({
+        const values = times(pieChartSeries, index => ({
             name: names[index],
             data: Math.round(Math.random() * 200)
         }));
 
         return (
             <div className="App">
-                <BarChart
-                    xAxis={xAxis}
-                    series={series}
-                    width={1000}
-                    height={600}
-                    min
-                />
+                {/*<BarChart*/}
+                    {/*xAxis={xAxis}*/}
+                    {/*series={series}*/}
+                    {/*width={1000}*/}
+                    {/*height={600}*/}
+                    {/*min*/}
+                {/*/>*/}
                 <PieChart
                     values={values}
                     width={500}
