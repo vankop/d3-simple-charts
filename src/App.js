@@ -13,9 +13,8 @@ const names = times(
 );
 
 class App extends Component {
-    componentDidMount() {
-        setInterval(() => this.forceUpdate(), 2500);
-    }
+
+    handleClick = () => this.forceUpdate();
 
     render() {
         const valueCount = Math.random() * 100 % 17 + 3;
@@ -35,19 +34,22 @@ class App extends Component {
         }));
 
         return (
-            <div className="App">
-                {/*<BarChart*/}
-                    {/*xAxis={xAxis}*/}
-                    {/*series={series}*/}
-                    {/*width={1000}*/}
-                    {/*height={600}*/}
-                    {/*min*/}
-                {/*/>*/}
-                <PieChart
-                    values={values}
-                    width={500}
-                    height={500}
-                />
+            <div>
+                <button onClick={this.handleClick}>Update</button>
+                <div className="App">
+                    <BarChart
+                        xAxis={xAxis}
+                        series={series}
+                        width={1000}
+                        height={600}
+                        min
+                    />
+                    <PieChart
+                        values={values}
+                        width={500}
+                        height={500}
+                    />
+                </div>
             </div>
         );
     }
