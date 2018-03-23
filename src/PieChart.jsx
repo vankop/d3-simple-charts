@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import invariant from 'invariant';
 import * as d3 from 'd3';
 import {
+    colorRange,
     lazyArgument,
     TRANSITION_DURATION
 } from './utils';
@@ -95,7 +96,7 @@ export default class PieChart extends Component {
         const color = d3
             .scaleOrdinal()
             .domain(map(values, ({ name }) => name))
-            .range(d3.schemeCategory20);
+            .range(colorRange);
 
         const pie = d3.pie().sort(null).value(({ data }) => data);
 

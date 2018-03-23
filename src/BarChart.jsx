@@ -5,8 +5,11 @@ import * as d3 from 'd3';
 import invariant from 'invariant';
 
 import legend from './legend';
-import './BarChart.css';
-import {lazyArgument, TRANSITION_DURATION} from './utils';
+import {
+    colorRange,
+    lazyArgument,
+    TRANSITION_DURATION
+} from './utils';
 
 const margin = {
     top: 40,
@@ -17,29 +20,29 @@ const margin = {
 
 const legendHeight = 100;
 
-const category10 = d3.schemeCategory10;
-
 function minMax(seriesData) {
     if (seriesData.length === 0) {
         return null;
     }
 
-    let max = seriesData[0][0];
+    let max = seriesData[0][0].data;
     let min = max;
 
     each(seriesData, (data) => {
-        each(data, (value) => {
-            if (value > max) {
-                max = value;
+        each(data, ({ data }) => {
+            if (data > max) {
+                max = data;
             }
-            if (value < min) {
-                min = value;
+            if (data < min) {
+                min = data;
             }
         })
     });
 
     return { max, min };
 }
+
+const keySelector = ({ name }) => name;
 
 export default class BarChart extends Component {
     static propTypes = {
@@ -121,7 +124,10 @@ export default class BarChart extends Component {
         const seriesData = [];
 
         for(let i = 0; i < dataLength; i++) {
-            const data = map(series, serie => serie.data[i]);
+            const data = map(series, serie => ({
+                data: serie.data[i],
+                name: serie.name
+            }));
             seriesData.push(data);
         }
 
@@ -151,8 +157,8 @@ export default class BarChart extends Component {
             .range([chartHeight, 0]);
 
         const color = d3.scaleOrdinal()
-            .domain(range(series.length))
-            .range(category10);
+            .domain(seriesLegend)
+            .range(colorRange);
 
         const yAxe = d3.axisLeft(y).ticks(5);
         const xAxe = d3.axisBottom(x)
@@ -198,11 +204,33 @@ export default class BarChart extends Component {
             .remove();
 
         g
+            .enter()
+            .append('g')
             .each(function (series, index) {
                 const rectangles = d3
                     .select(this)
                     .selectAll('rect')
-                    .data(series);
+                    .data(series, keySelector);
+
+                rectangles
+                    .enter()
+                    .append('rect')
+                    .attr('width', seriesWidth)
+                    .attr('fill', el => color(keySelector(el)))
+                    .attr('x', (el, seriesIndex) => x(index) + seriesWidth * seriesIndex)
+                    .attr('y', chartHeight)
+                    .attr('height', ({ data }) => chartHeight - y(data))
+                    .transition()
+                    .duration(TRANSITION_DURATION)
+                    .attr('y', ({ data }) => y(data));
+            });
+
+        g
+            .each(function (series, index) {
+                const rectangles = d3
+                    .select(this)
+                    .selectAll('rect')
+                    .data(series, keySelector);
 
                 rectangles
                     .exit()
@@ -212,15 +240,29 @@ export default class BarChart extends Component {
                     .remove();
 
                 rectangles
-                    .attr('fill', (el, index) => color(index))
+                    .enter()
+                    .append('rect')
+                    .attr('width', seriesWidth)
+                    .attr('fill', el => color(keySelector(el)))
+                    .attr('stroke', '#666')
+                    .attr('x', (el, seriesIndex) => x(index) + seriesWidth * seriesIndex)
+                    .attr('y', chartHeight)
+                    .attr('height', ({ data }) => chartHeight - y(data))
+                    .transition()
+                    .duration(TRANSITION_DURATION)
+                    .attr('y', ({ data }) => y(data));
+
+                rectangles
+                    .attr('fill', el => color(keySelector(el)))
                     .transition()
                     .duration(TRANSITION_DURATION)
                     .tween("updateExisting", function (el, seriesIndex) {
                         const node = this;
-                        const heightInterpolator = d3.interpolateString(node.getAttribute('height'), chartHeight - y(el));
+                        const { data } = el;
+                        const heightInterpolator = d3.interpolateString(node.getAttribute('height'), chartHeight - y(data));
                         const widthInterpolator = d3.interpolateString(node.getAttribute('width'), seriesWidth);
                         const xInterpolator = d3.interpolateString(node.getAttribute('x'), x(index) + seriesWidth * seriesIndex);
-                        const yInterpolator = d3.interpolateString(node.getAttribute('y'), y(el));
+                        const yInterpolator = d3.interpolateString(node.getAttribute('y'), y(data));
                         return (t) => {
                             node.setAttribute('height', heightInterpolator(t));
                             node.setAttribute('width', widthInterpolator(t));
@@ -228,40 +270,6 @@ export default class BarChart extends Component {
                             node.setAttribute('y', yInterpolator(t));
                         };
                     });
-
-                rectangles
-                    .enter()
-                    .append('rect')
-                    .attr('width', seriesWidth)
-                    .attr('fill', (el, index) => color(index))
-                    .attr('x', (el, seriesIndex) => x(index) + seriesWidth * seriesIndex)
-                    .attr('y', chartHeight)
-                    .attr('height', (el) => chartHeight - y(el))
-                    .transition()
-                    .duration(TRANSITION_DURATION)
-                    .attr('y', (el) => y(el));
-            });
-
-        g
-            .enter()
-            .append('g')
-            .each(function (series, index) {
-                const rectangles = d3
-                    .select(this)
-                    .selectAll('rect')
-                    .data(series);
-
-                rectangles
-                    .enter()
-                        .append('rect')
-                        .attr('width', seriesWidth)
-                        .attr('fill', (el, index) => color(index))
-                        .attr('x', (el, seriesIndex) => x(index) + seriesWidth * seriesIndex)
-                        .attr('y', chartHeight)
-                        .attr('height', (el) => chartHeight - y(el))
-                    .transition()
-                    .duration(TRANSITION_DURATION)
-                    .attr('y', (el) => y(el));
             });
 
         this.yAxe
