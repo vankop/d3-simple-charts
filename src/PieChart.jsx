@@ -4,6 +4,8 @@ import invariant from 'invariant';
 import * as d3 from 'd3';
 import {
     colorRange,
+    createMouseEnterHandler,
+    createMouseLeaveHandler,
     lazyArgument,
     PIE_CHART_TRANSITION_DURATION
 } from './utils';
@@ -38,53 +40,6 @@ function arcTween(tweenArc, delay) {
             .delay(delay)
             .attr('d', tweenArc);
     };
-}
-
-function createMouseEnterHandler({
-    mouseEnterArcTween,
-    handleMouseLeave,
-    arc,
-    popupsContainer,
-    color
-}) {
-    return function mouseEnter(el) {
-        if (!this._popup) {
-            const {
-                data: {name, data},
-                settings: {
-                    format
-                } = {}
-            } = el;
-
-            mouseEnterArcTween.call(this);
-
-            this._popup = popup(
-                popupsContainer,
-                name,
-                format
-                    ? format.replace(/%s/ig, data)
-                    : data,
-                arc.centroid(el),
-                color(keySelector(el)),
-                handleMouseLeave.bind(this)
-            );
-        }
-    }
-}
-
-function createMouseLeaveHandler(mouseLeaveArcTween) {
-    return function mouseLeave() {
-        if (this._popup) {
-            if (!this._popup.isEventTarget(d3.event.relatedTarget)) {
-                mouseLeaveArcTween.call(this);
-
-                if (this._popup) {
-                    this._popup.remove();
-                    this._popup = null;
-                }
-            }
-        }
-    }
 }
 
 export default class PieChart extends Component {
@@ -209,11 +164,26 @@ export default class PieChart extends Component {
 
         const handleMouseLeave = createMouseLeaveHandler(mouseLeaveArcTween);
         const handleMouseEnter = createMouseEnterHandler({
-            mouseEnterArcTween,
+            animate: mouseEnterArcTween,
             handleMouseLeave,
-            arc,
+            seriesSelector: (el) => {
+                const {
+                    data: {name, data},
+                    settings: {
+                        format
+                    } = {}
+                } = el;
+
+                return {
+                    name,
+                    data: format
+                        ? format.replace(/%s/ig, data)
+                        : data
+                };
+            },
+            positionSelector: arc.centroid,
             popupsContainer: this.popupsContainer,
-            color
+            colorSelector: el => color(keySelector(el))
         });
 
         const g = this.chart
