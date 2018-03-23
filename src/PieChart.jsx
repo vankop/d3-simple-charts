@@ -126,8 +126,8 @@ export default class PieChart extends Component {
                 .attr('transform', `translate(${margin.left + (cx - radius)},${margin.top + chartHeight + margin.bottom})`)
         }
 
-        if (!this.polygons) {
-            this.polygons = this.d3Node
+        if (!this.polylines) {
+            this.polylines = this.d3Node
                 .append('g');
         }
 
@@ -160,8 +160,8 @@ export default class PieChart extends Component {
                 .each(rememberDatum)
                 .transition()
                 .duration(TRANSITION_DURATION * 2)
-                .attrTween('d', (tweeningArc) => {
-                    const interpolation = d3.interpolate({startAngle: 0, endAngle: 0}, tweeningArc);
+                .attrTween('d', (el) => {
+                    const interpolation = d3.interpolate({startAngle: 0, endAngle: 0}, el);
                     return moment => arc(interpolation(moment));
                 });
         } else {
@@ -193,11 +193,11 @@ export default class PieChart extends Component {
                 };
             });
 
-        const polygon = this.polygons
+        const polyline = this.polylines
             .selectAll('polyline')
             .data(pie(values), keySelector);
 
-        polygon
+        polyline
             .exit()
             .transition()
             .duration(TRANSITION_DURATION * 2)
@@ -219,15 +219,13 @@ export default class PieChart extends Component {
             .styleTween('opacity', () => moment => 1 - moment)
             .remove();
 
-        polygon
+        polyline
             .enter()
             .append('polyline')
             .attr('stroke', el => color(keySelector(el)))
             .attr('fill', 'none')
             .each(rememberDatum)
             .text(({ name }) => name)
-            .transition()
-            .duration(TRANSITION_DURATION * 2)
             .attr('points', (el) => {
                 const arcCentroid = arc.centroid(el);
                 const labelCentroid = labelArc.centroid(el);
@@ -238,9 +236,13 @@ export default class PieChart extends Component {
                     labelCentroid,
                     [labelXPosition(el), labelY]
                 ];
-            });
+            })
+            .style('opacity', 0)
+            .transition()
+            .duration(TRANSITION_DURATION * 2)
+            .style('opacity', 1);
 
-        polygon
+        polyline
             .transition()
             .duration(TRANSITION_DURATION * 2)
             .attrTween(
