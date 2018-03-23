@@ -2,9 +2,19 @@ import * as d3 from 'd3';
 import {range} from 'lodash';
 import {BAR_CHART_TRANSITION_DURATION} from './utils';
 
-const legendCircleTextPadding = 3;
-const legendInfoRadius = 4;
+export const legendCircleTextPadding = 3;
+export const legendInfoRadius = 4;
 
+/**
+ * @param {HTMLElement} node
+ * @param {Object} param
+ * @param {number} param.x
+ * @param {number} param.y
+ * @param {number} height
+ * @param {number} width
+ * @param {Object} colorScale
+ * @param {Array<string>} values
+ */
 export default function createLegend(
     node,
     {
