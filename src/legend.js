@@ -39,7 +39,7 @@ export default function createLegend(
 
             currentBand
                 .select('circle')
-                .attr('fill', colorScale(index))
+                .attr('fill', colorScale(legend))
                 .transition()
                 .duration(TRANSITION_DURATION)
                 .attr('cy', legendY(index) - legendInfoRadius);
@@ -65,7 +65,7 @@ export default function createLegend(
                 .attr('r', legendInfoRadius)
                 .attr('cy', outOfViewY)
                 .attr('cx', marginLeft + legendInfoRadius)
-                .attr('fill', colorScale(index))
+                .attr('fill', colorScale(legend))
                 .transition()
                 .duration(TRANSITION_DURATION)
                 .attr('cy', legendY(index) - legendInfoRadius);
