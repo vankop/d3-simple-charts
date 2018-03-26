@@ -18,7 +18,7 @@ const baseWidth = 80;
  * @return {Object}
  */
 export default function popup(node, serieName, serieInfo, coord, color, onMouseLeave) {
-    const popup = node
+    const d3Node = node
         .append('g')
             .style('cursor', 'default')
             .attr('transform', `translate(${coord})`);
@@ -26,7 +26,7 @@ export default function popup(node, serieName, serieInfo, coord, color, onMouseL
     const isPopupContent = (domNode) => {
         let result = false;
 
-        popup.each(function () {
+        d3Node.each(function () {
             result = this.contains(domNode)
         });
 
@@ -39,7 +39,7 @@ export default function popup(node, serieName, serieInfo, coord, color, onMouseL
         }
     };
 
-    const rect = popup
+    d3Node
         .append('rect')
         .on('mouseleave', handleMouseLeave)
         .attr('x', 0)
@@ -49,7 +49,7 @@ export default function popup(node, serieName, serieInfo, coord, color, onMouseL
         .attr('height', legendInfoRadius * 2 + extraHeight + border)
         .attr('width', baseWidth + max([serieName.length, serieInfo.length]));
 
-    const circle = popup
+    d3Node
         .append('circle')
         .on('mouseleave', handleMouseLeave)
         .attr('fill', color)
@@ -57,7 +57,7 @@ export default function popup(node, serieName, serieInfo, coord, color, onMouseL
         .attr('cy', legendInfoRadius + paddingInRect)
         .attr('r', legendInfoRadius);
 
-    const name = popup
+    d3Node
         .append('text')
         .on('mouseleave', handleMouseLeave)
         .attr('font-family', 'sans-serif')
@@ -66,7 +66,7 @@ export default function popup(node, serieName, serieInfo, coord, color, onMouseL
         .attr('y', 2 * legendInfoRadius + paddingInRect)
         .text(serieName);
 
-    const info = popup
+    d3Node
         .append('text')
         .on('mouseleave', handleMouseLeave)
         .attr('font-family', 'sans-serif')
@@ -77,6 +77,6 @@ export default function popup(node, serieName, serieInfo, coord, color, onMouseL
 
     return {
         isEventTarget: isPopupContent,
-        remove: () => popup.remove()
+        remove: () => d3Node.remove()
     };
 }
