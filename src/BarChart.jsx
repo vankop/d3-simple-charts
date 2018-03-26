@@ -10,7 +10,6 @@ import {
     lazyArgument,
     BAR_CHART_TRANSITION_DURATION, createMouseLeaveHandler, createMouseEnterHandler
 } from './utils';
-import popup from './popup';
 
 const margin = {
     top: 40,
