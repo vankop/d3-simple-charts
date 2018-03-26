@@ -11,7 +11,6 @@ import {
 } from './utils';
 import { min, range, map, reduce } from 'lodash';
 import legend from './legend';
-import popup from './popup';
 
 const legendHeight = 200;
 
