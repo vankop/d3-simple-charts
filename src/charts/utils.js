@@ -1,5 +1,7 @@
 import * as d3 from 'd3';
+
 import popup from './popup';
+
 export const BAR_CHART_TRANSITION_DURATION = 750;
 export const PIE_CHART_TRANSITION_DURATION = 1300;
 
@@ -12,10 +14,12 @@ export const colorRange = d3.schemeCategory20;
 export function createMouseEnterHandler({
     animate,
     handleMouseLeave,
-    positionSelector,
+    positionLeftSelector,
+    positionRightSelector,
     popupsContainer,
     colorSelector,
-    seriesSelector
+    seriesSelector,
+    isXInScope
 }) {
     return function mouseEnter(el, index) {
         if (!this._popup) {
@@ -26,16 +30,18 @@ export function createMouseEnterHandler({
 
             animate.call(this, el, index);
 
-            this._popup = popup(
-                popupsContainer,
-                name,
-                data,
-                positionSelector.call(this, el, index),
-                colorSelector.call(this, el, index),
-                handleMouseLeave.bind(this)
-            );
+            this._popup = popup({
+                node: popupsContainer,
+                serieName: name,
+                serieInfo: data,
+                coordLeft: positionLeftSelector.call(this, el, index),
+                coordRight: positionRightSelector.call(this, el, index),
+                color: colorSelector.call(this, el, index),
+                onMouseLeave: handleMouseLeave.bind(this),
+                isXInScope
+            });
         }
-    }
+    };
 }
 
 export function createMouseLeaveHandler(animate) {
@@ -50,5 +56,5 @@ export function createMouseLeaveHandler(animate) {
                 }
             }
         }
-    }
+    };
 }
