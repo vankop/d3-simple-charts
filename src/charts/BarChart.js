@@ -13,7 +13,10 @@ import {
     lazyArgument,
     BAR_CHART_TRANSITION_DURATION,
     createMouseLeaveHandler,
-    createMouseEnterHandler
+    createMouseEnterHandler,
+    minMax,
+    XYChartYScale,
+    mapBarChartDataToSeriesData
 } from './utils';
 
 const margin = {
@@ -24,28 +27,6 @@ const margin = {
 };
 
 const legendHeight = 100;
-
-function minMax(seriesData) {
-    if (seriesData.length === 0) {
-        return null;
-    }
-
-    let max = seriesData[0][0].data;
-    let min = max;
-
-    each(seriesData, (series) => {
-        each(series, ({ data }) => {
-            if (data > max) {
-                max = data;
-            }
-            if (data < min) {
-                min = data;
-            }
-        });
-    });
-
-    return { max, min };
-}
 
 const keySelector = ({ name }) => name;
 
@@ -80,15 +61,7 @@ export default function createBarChart(series, xAxis, min) {
         return;
     }
 
-    const seriesData = [];
-
-    for (let i = 0; i < dataLength; i++) {
-        const data = map(series, serie => ({
-            data: serie.data[i],
-            name: serie.name
-        }));
-        seriesData.push(data);
-    }
+    const seriesData = mapBarChartDataToSeriesData(series);
 
     const seriesLegend = map(series, ({ name }) => name);
 
@@ -105,13 +78,7 @@ export default function createBarChart(series, xAxis, min) {
         .range([0, chartWidth])
         .padding(0.2);
 
-    const { max: maxValue, min: minValue } = minMax(seriesData);
-
-    const max = maxValue / 0.75;
-
-    const y = d3.scaleLinear()
-        .domain([min === true ? minValue / 2 : (min || 0), max])
-        .range([chartHeight, 0]);
+    const y = XYChartYScale(seriesData, chartHeight, min);
 
     const color = d3.scaleOrdinal()
         .domain(seriesLegend)

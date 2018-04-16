@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 
 import popup from './popup';
+import {each, map} from 'lodash';
 
 export const BAR_CHART_TRANSITION_DURATION = 750;
 export const PIE_CHART_TRANSITION_DURATION = 1300;
@@ -57,4 +58,53 @@ export function createMouseLeaveHandler(animate) {
             }
         }
     };
+}
+
+export function mapBarChartDataToSeriesData(series) {
+    const seriesData = [];
+    const dataLength = series[0].data.length;
+
+    for (let i = 0; i < dataLength; i++) {
+        const data = map(series, serie => ({
+            data: serie.data[i],
+            name: serie.name
+        }));
+        seriesData.push(data);
+    }
+
+    return seriesData;
+}
+
+function minMax(seriesData) {
+    if (seriesData.length === 0) {
+        return null;
+    }
+
+    let max = seriesData[0][0].data;
+    let min = max;
+
+    each(seriesData, (series) => {
+        each(series, ({ data }) => {
+            if (data > max) {
+                max = data;
+            }
+            if (data < min) {
+                min = data;
+            }
+        });
+    });
+
+    return { max, min };
+}
+
+export function XYChartYScale(seriesData, height, min) {
+    const { max: maxValue, min: minValue } = minMax(seriesData);
+
+    const diff = maxValue - minValue;
+    const top = minValue + (diff / 0.8);
+    const bottom = minValue - (diff / 4);
+
+    return d3.scaleLinear()
+        .domain([min === true ? (bottom > 0 ? bottom : 0) : (min || 0), top])
+        .range([height, 0]);
 }
