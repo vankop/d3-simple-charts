@@ -14,7 +14,6 @@ import {
     BAR_CHART_TRANSITION_DURATION,
     createMouseLeaveHandler,
     createMouseEnterHandler,
-    minMax,
     XYChartYScale,
     mapBarChartDataToSeriesData
 } from './utils';
@@ -29,6 +28,28 @@ const margin = {
 const legendHeight = 100;
 
 const keySelector = ({ name }) => name;
+
+function minMax(seriesData) {
+    if (seriesData.length === 0) {
+        return null;
+    }
+
+    let max = seriesData[0][0].data;
+    let min = max;
+
+    each(seriesData, (series) => {
+        each(series, ({ data }) => {
+            if (data > max) {
+                max = data;
+            }
+            if (data < min) {
+                min = data;
+            }
+        });
+    });
+
+    return { max, min };
+}
 
 export default function createBarChart(series, xAxis, min) {
     invariant(
@@ -78,7 +99,7 @@ export default function createBarChart(series, xAxis, min) {
         .range([0, chartWidth])
         .padding(0.2);
 
-    const y = XYChartYScale(seriesData, chartHeight, min);
+    const y = XYChartYScale(() => minMax(seriesData), chartHeight, min);
 
     const color = d3.scaleOrdinal()
         .domain(seriesLegend)

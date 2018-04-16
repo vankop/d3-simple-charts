@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 
 import popup from './popup';
-import {each, map} from 'lodash';
+import { map } from 'lodash';
 
 export const BAR_CHART_TRANSITION_DURATION = 750;
 export const PIE_CHART_TRANSITION_DURATION = 1300;
@@ -75,30 +75,8 @@ export function mapBarChartDataToSeriesData(series) {
     return seriesData;
 }
 
-function minMax(seriesData) {
-    if (seriesData.length === 0) {
-        return null;
-    }
-
-    let max = seriesData[0][0].data;
-    let min = max;
-
-    each(seriesData, (series) => {
-        each(series, ({ data }) => {
-            if (data > max) {
-                max = data;
-            }
-            if (data < min) {
-                min = data;
-            }
-        });
-    });
-
-    return { max, min };
-}
-
-export function XYChartYScale(seriesData, height, min) {
-    const { max: maxValue, min: minValue } = minMax(seriesData);
+export function XYChartYScale(minMax, height, min) {
+    const { max: maxValue, min: minValue } = minMax();
 
     const diff = maxValue - minValue;
     const top = minValue + (diff / 0.8);

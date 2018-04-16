@@ -29,11 +29,12 @@ export default function popup({
     coordRight,
     color,
     onMouseLeave,
-    isXInScope
+    isXInScope,
+    width: fixedWidth
 }) {
     const [xLeft] = coordLeft;
     const [xRight] = coordRight;
-    const width = baseWidth + (max([serieName.length, serieInfo.length]) * 7);
+    const width = fixedWidth || (baseWidth + (max([serieName.length, serieInfo.length]) * 7));
 
     const positionLeft = isXInScope(xLeft + width)
         ? true
@@ -55,7 +56,7 @@ export default function popup({
     };
 
     const handleMouseLeave = () => {
-        if (!isPopupContent(d3.event.relatedTarget)) {
+        if (onMouseLeave && !isPopupContent(d3.event.relatedTarget)) {
             onMouseLeave();
         }
     };
