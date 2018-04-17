@@ -1,9 +1,8 @@
 import * as d3 from 'd3';
 
 import popup from './popup';
-import { map } from 'lodash';
 
-export const BAR_CHART_TRANSITION_DURATION = 750;
+export const AREA_CHART_TRANSITION_DURATION = 750;
 export const PIE_CHART_TRANSITION_DURATION = 1300;
 
 export const lazyArgument = func => ({
@@ -60,21 +59,6 @@ export function createMouseLeaveHandler(animate) {
     };
 }
 
-export function mapBarChartDataToSeriesData(series) {
-    const seriesData = [];
-    const dataLength = series[0].data.length;
-
-    for (let i = 0; i < dataLength; i++) {
-        const data = map(series, serie => ({
-            data: serie.data[i],
-            name: serie.name
-        }));
-        seriesData.push(data);
-    }
-
-    return seriesData;
-}
-
 export function XYChartYScale(minMax, height, min) {
     const { max: maxValue, min: minValue } = minMax();
 
@@ -87,6 +71,13 @@ export function XYChartYScale(minMax, height, min) {
         .range([height, 0]);
 }
 
-export function textXPosition() {
+function textXPosition() {
     return -10 - this.textContent.length;
+}
+
+export function transformAxeTextPosition(axe) {
+    axe
+        .selectAll('text')
+        .attr('x', textXPosition)
+        .attr('transform', 'rotate(-40)');
 }
