@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 import { each, map } from 'lodash';
 import moment from 'moment';
 
-import {BAR_CHART_TRANSITION_DURATION, textXPosition, XYChartYScale} from './utils';
+import {AREA_CHART_TRANSITION_DURATION, textXPosition, transformAxeTextPosition, XYChartYScale} from './utils';
 import legend from './legend';
 import popup from './popup';
 
@@ -187,11 +187,7 @@ export default function createTimelineChart(node, timeline, color, min = true) {
     this.yAxe
         .call(yAxe);
 
-    this.xAxe
-        .call(xAxe)
-        .selectAll('text')
-        .attr('x', textXPosition)
-        .attr('transform', 'rotate(-40)');
+    transformAxeTextPosition(this.xAxe.call(xAxe));
 
     const selfXAxe = this.xAxe;
 
@@ -217,11 +213,7 @@ export default function createTimelineChart(node, timeline, color, min = true) {
                 .tickFormat(datetime => format(newXAxeDisplayLevel, datetime));
 
             x.domain(domain);
-            selfXAxe
-                .call(xAxe)
-                .selectAll('text')
-                .attr('x', textXPosition)
-                .attr('transform', 'rotate(-40)');
+            transformAxeTextPosition(selfXAxe.call(xAxe));
 
             chart
                 .selectAll('path')
@@ -232,7 +224,7 @@ export default function createTimelineChart(node, timeline, color, min = true) {
     path
         .exit()
         .transition()
-        .duration(BAR_CHART_TRANSITION_DURATION)
+        .duration(AREA_CHART_TRANSITION_DURATION)
         .attrTween('d', function tweenD(data) {
             const interpolate = d3.interpolateArray(data, this.initial);
             return time => {
@@ -251,7 +243,7 @@ export default function createTimelineChart(node, timeline, color, min = true) {
         .attr('stroke-linecap', 'round')
         .attr('stroke-width', 1.5)
         .transition()
-        .duration(BAR_CHART_TRANSITION_DURATION)
+        .duration(AREA_CHART_TRANSITION_DURATION)
         .attrTween('d', function tweenD(data) {
             this.initial = map(data, ({ datetime }) => ({ datetime, value: -10 }));
             const interpolate = d3.interpolateArray(this.initial, data);
@@ -264,7 +256,7 @@ export default function createTimelineChart(node, timeline, color, min = true) {
     path
         .attr('stroke', color)
         .transition()
-        .duration(BAR_CHART_TRANSITION_DURATION)
+        .duration(AREA_CHART_TRANSITION_DURATION)
         .attrTween('d', function tweenD(data) {
             const interpolate = d3.interpolateArray(this.data, data);
             return time => {

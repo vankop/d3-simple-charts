@@ -11,12 +11,11 @@ import legend from './legend';
 import {
     colorRange,
     lazyArgument,
-    BAR_CHART_TRANSITION_DURATION,
+    AREA_CHART_TRANSITION_DURATION,
     createMouseLeaveHandler,
     createMouseEnterHandler,
     XYChartYScale,
-    mapBarChartDataToSeriesData,
-    textXPosition
+    transformAxeTextPosition
 } from './utils';
 
 const margin = {
@@ -29,6 +28,21 @@ const margin = {
 const legendHeight = 100;
 
 const keySelector = ({ name }) => name;
+
+function mapBarChartDataToSeriesData(series) {
+    const seriesData = [];
+    const dataLength = series[0].data.length;
+
+    for (let i = 0; i < dataLength; i++) {
+        const data = map(series, serie => ({
+            data: serie.data[i],
+            name: serie.name
+        }));
+        seriesData.push(data);
+    }
+
+    return seriesData;
+}
 
 function minMax(seriesData) {
     if (seriesData.length === 0) {
@@ -204,7 +218,7 @@ export default function createBarChart(series, xAxis, min) {
                 .on('mouseenter', handleMouseEnter)
                 .on('mouseleave', handleMouseLeave)
                 .transition()
-                .duration(BAR_CHART_TRANSITION_DURATION)
+                .duration(AREA_CHART_TRANSITION_DURATION)
                 .attr('y', ({ data }) => y(data));
         });
 
@@ -218,7 +232,7 @@ export default function createBarChart(series, xAxis, min) {
             rectangles
                 .exit()
                 .transition()
-                .duration(BAR_CHART_TRANSITION_DURATION)
+                .duration(AREA_CHART_TRANSITION_DURATION)
                 .attr('y', chartHeight)
                 .remove();
 
@@ -236,13 +250,13 @@ export default function createBarChart(series, xAxis, min) {
                 .on('mouseenter', handleMouseEnter)
                 .on('mouseleave', handleMouseLeave)
                 .transition()
-                .duration(BAR_CHART_TRANSITION_DURATION)
+                .duration(AREA_CHART_TRANSITION_DURATION)
                 .attr('y', ({ data }) => y(data));
 
             rectangles
                 .attr('fill', el => color(keySelector(el)))
                 .transition()
-                .duration(BAR_CHART_TRANSITION_DURATION)
+                .duration(AREA_CHART_TRANSITION_DURATION)
                 .tween('updateExisting', function updateExisting(el, seriesIndex) {
                     const node = this;
                     const { data } = el;
@@ -262,11 +276,7 @@ export default function createBarChart(series, xAxis, min) {
     this.yAxe
         .call(yAxe);
 
-    this.xAxe
-        .call(xAxe)
-        .selectAll('text')
-        .attr('x', textXPosition)
-        .attr('transform', 'rotate(-40)');
+    transformAxeTextPosition(this.xAxe.call(xAxe));
 
     legend(
         this.legend,
