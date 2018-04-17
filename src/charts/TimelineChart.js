@@ -187,8 +187,6 @@ export default function createTimelineChart(node, timeline, color, min = true) {
     this.yAxe
         .call(yAxe);
 
-    const selfYAxe = this.yAxe;
-
     this.xAxe
         .call(xAxe)
         .selectAll('text')

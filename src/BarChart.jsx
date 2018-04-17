@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { range, map, each, every } from 'lodash';
 import PropTypes from 'prop-types';
 
 import createBarChart from './charts/BarChart';
