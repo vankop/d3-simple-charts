@@ -73,7 +73,7 @@ class App extends Component {
                         min
                         timeline={timeline}
                         color="steelblue"
-                        width={700}
+                        width={1800}
                         height={500}
                     />
                 </div>

@@ -272,6 +272,30 @@ export default function createTimelineChart(node, timeline, color, min = true) {
 
     const popupsContainer = this.popupsContainer;
 
+    function mouseMove(data) {
+        const currentDatetime = x.invert(d3.mouse(this)[0]);
+        const index = bisect(data, currentDatetime);
+        const { value, datetime } = data[index];
+        marker.attr('cy', y(value));
+        marker.attr('cx', x(datetime));
+
+        if (this._popup) {
+            this._popup.remove();
+            this._popup = null;
+        }
+
+        this._popup = popup({
+            node: popupsContainer,
+            serieName: 'legend',
+            serieInfo: `${format(xAxeDisplayLevel, datetime)}: ${value}`,
+            coordLeft: [chartWidth - popupMargin - popupWidth, popupMargin],
+            coordRight: [popupWidth + popupMargin, popupMargin],
+            color,
+            isXInScope,
+            width: popupWidth
+        });
+    }
+
     const eventHandler = this.chart
         .selectAll('rect')
         .data([timeline]);
@@ -295,31 +319,19 @@ export default function createTimelineChart(node, timeline, color, min = true) {
             this._popup = null;
             marker.style('display', 'none')
         })
-        .on('mousemove', function mousemove(data) {
-            const currentDatetime = x.invert(d3.mouse(this)[0]);
-            const index = bisect(data, currentDatetime);
-            const { value, datetime } = data[index];
-            marker.attr('cy', y(value));
-            marker.attr('cx', x(datetime));
-
-            if (this._popup) {
-                this._popup.remove();
-                this._popup = null;
-            }
-
-            this._popup = popup({
-                node: popupsContainer,
-                serieName: 'legend',
-                serieInfo: `${format(xAxeDisplayLevel, datetime)}: ${value}`,
-                coordLeft: [chartWidth - popupMargin - popupWidth, popupMargin],
-                coordRight: [popupWidth + popupMargin, popupMargin],
-                color,
-                isXInScope,
-                width: popupWidth
-            });
-        })
+        .on('mousemove', mouseMove)
         .call(zoom)
         .on('wheel', () => d3.event.preventDefault());
+
+    eventHandler
+        .on('mousemove', mouseMove)
+        .call(zoom.transform, d3.zoomIdentity)
+        .on('.zoom', null)
+        .transition()
+        .duration(AREA_CHART_TRANSITION_DURATION)
+        .on('end', function reBindZoom() {
+            d3.select(this).call(zoom);
+        });
 
     legend(
         this.legend,
