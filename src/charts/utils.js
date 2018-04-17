@@ -86,3 +86,7 @@ export function XYChartYScale(minMax, height, min) {
         .domain([min === true ? (bottom > 0 ? bottom : 0) : (min || 0), top])
         .range([height, 0]);
 }
+
+export function textXPosition() {
+    return -10 - this.textContent.length;
+}

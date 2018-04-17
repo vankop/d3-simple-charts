@@ -15,7 +15,7 @@ const names = times(
     () => faker.hacker.noun()
 );
 
-const timelineLength = 100;
+const timelineLength = 200;
 
 class App extends Component {
 
@@ -48,7 +48,7 @@ class App extends Component {
 
         for (let  i = 0; i < timelineLength; i++) {
             timeline[i] = {
-                value: Math.round(Math.random() * 500 + 100),
+                value: Math.round(Math.random() * 300 + 100),
                 datetime: timelineStart + i * timelineStep * 1000 * 60 * 60
             };
         }

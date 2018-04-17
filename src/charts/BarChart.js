@@ -15,7 +15,8 @@ import {
     createMouseLeaveHandler,
     createMouseEnterHandler,
     XYChartYScale,
-    mapBarChartDataToSeriesData
+    mapBarChartDataToSeriesData,
+    textXPosition
 } from './utils';
 
 const margin = {
@@ -264,9 +265,7 @@ export default function createBarChart(series, xAxis, min) {
     this.xAxe
         .call(xAxe)
         .selectAll('text')
-        .attr('x', function textXPosition() {
-            return -10 - this.textContent.length;
-        })
+        .attr('x', textXPosition)
         .attr('transform', 'rotate(-40)');
 
     legend(

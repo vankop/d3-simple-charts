@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 import { each, map } from 'lodash';
 import moment from 'moment';
 
-import {BAR_CHART_TRANSITION_DURATION, XYChartYScale} from './utils';
+import {BAR_CHART_TRANSITION_DURATION, textXPosition, XYChartYScale} from './utils';
 import legend from './legend';
 import popup from './popup';
 
@@ -119,6 +119,7 @@ export default function createTimelineChart(node, timeline, color, min = true) {
         .scaleTime()
         .domain([minDatetime, maxDatetime])
         .range([0, chartWidth]);
+    const xCopy = x.copy();
 
     const line = d3
         .line()
@@ -126,12 +127,11 @@ export default function createTimelineChart(node, timeline, color, min = true) {
         .y(({ value }) => y(value));
 
     const xAxeDisplayLevel = computeDisplayLevel(minDatetime, maxDatetime);
-    const currentFormatting = format.bind(null, xAxeDisplayLevel);
 
     const xAxe = d3
         .axisBottom(x)
         .ticks(getXAxeTicks(xAxeDisplayLevel))
-        .tickFormat(currentFormatting);
+        .tickFormat(datetime => format(xAxeDisplayLevel, datetime));
 
     const yAxe = d3
         .axisLeft(y)
@@ -169,7 +169,9 @@ export default function createTimelineChart(node, timeline, color, min = true) {
 
     if (!this.chart) {
         this.chart = this.d3Node
-            .append('g');
+            .append('svg')
+            .attr('width', chartWidth)
+            .attr('height', chartHeight);
     }
 
     if (!this.marker) {
@@ -190,9 +192,7 @@ export default function createTimelineChart(node, timeline, color, min = true) {
     this.xAxe
         .call(xAxe)
         .selectAll('text')
-        .attr('x', function textXPosition() {
-            return -10 - this.textContent.length;
-        })
+        .attr('x', textXPosition)
         .attr('transform', 'rotate(-40)');
 
     const selfXAxe = this.xAxe;
@@ -205,28 +205,30 @@ export default function createTimelineChart(node, timeline, color, min = true) {
 
     const zoom = d3
         .zoom()
-        .extent([[20, 20], [chartWidth - 20, chartHeight - 20]])
-        .scaleExtent([1, 2])
-        .on('zoom', function () {
-            debugger;
+        .scaleExtent([1, 10])
+        .translateExtent([[0, 0], [chartWidth, chartHeight]])
+        .extent([[0, 0], [chartWidth, chartHeight]])
+        .on('zoom', function zoom() {
             const transform = d3.zoomTransform(this);
-            const tempX = transform.rescaleX(x);
-            const tempY = transform.rescaleX(y);
-            x.domain(tempX.domain());
-            y.domain(tempY.domain());
-            selfYAxe.call(yAxe);
+            const tempX = transform.rescaleX(xCopy);
+            const domain = tempX.domain();
+            const newXAxeDisplayLevel = computeDisplayLevel(moment(domain[0]).valueOf(), moment(domain[1]).valueOf());
+
+            xAxe
+                .ticks(getXAxeTicks(newXAxeDisplayLevel))
+                .tickFormat(datetime => format(newXAxeDisplayLevel, datetime));
+
+            x.domain(domain);
             selfXAxe
                 .call(xAxe)
                 .selectAll('text')
-                .attr('x', function textXPosition() {
-                    return -10 - this.textContent.length;
-                })
+                .attr('x', textXPosition)
                 .attr('transform', 'rotate(-40)');
 
             chart
                 .selectAll('path')
                 .data([timeline])
-                .attr('d', line)
+                .attr('d', line);
         });
 
     path
@@ -326,7 +328,8 @@ export default function createTimelineChart(node, timeline, color, min = true) {
                 width: popupWidth
             });
         })
-        .call(zoom);
+        .call(zoom)
+        .on('wheel', () => d3.event.preventDefault());
 
     legend(
         this.legend,
